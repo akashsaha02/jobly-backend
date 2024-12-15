@@ -18,7 +18,6 @@ const PORT = process.env.PORT || 4000;
 // MongoDB Database Connection
 
 const uri = process.env.MONGO_URI;
-console.log(uri);
 
 const client = new MongoClient(uri, {
     serverApi: {
@@ -40,10 +39,46 @@ async function run() {
             res.send(jobs);
         });
 
+        app.get('/jobs/:id', async (req, res) => {
+            const id = req.params.id;
+            if (!ObjectId.isValid(id)) {
+                return res.status(400).send('Invalid job ID');
+            }
+            const job = await jobsCollection.findOne({ _id: new ObjectId(id) });
+            res.send(job);
+            console.log(job)
+        });
+
         app.post('/jobs', async (req, res) => {
-            const newCampaign = req.body
-            const result = await jobsCollection.insertOne(newCampaign);
+            const newJob = req.body
+            const result = await jobsCollection.insertOne(newJob);
             res.send(result);
+            console.log(result)
+        });
+
+        app.put('/jobs/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedJob = req.body;
+            delete updatedJob._id;
+            try {
+                const result = await jobsCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: updatedJob }
+                );
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ error: error.message });
+            }
+        });
+
+        app.delete('/jobs/:id', async (req, res) => {
+            const id = req.params.id;
+            try {
+                const result = await jobsCollection.deleteOne({ _id: new ObjectId(id) });
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ error: error.message });
+            }
         });
 
 
