@@ -32,7 +32,7 @@ async function run() {
         console.log("Connected to the server");
         const database = client.db("jobly");
         const jobsCollection = database.collection("jobs");
-        // const donatationCollection = database.collection("donations");
+        const applicationCollection = database.collection("applications");
 
         app.get('/jobs', async (req, res) => {
             const jobs = await jobsCollection.find().toArray();
@@ -79,6 +79,19 @@ async function run() {
             } catch (error) {
                 res.status(500).send({ error: error.message });
             }
+        });
+
+        app.get('/applications', async (req, res) => {
+            const email = req.query.email;
+            const query = { applicantEmail: email };
+            const applications = await applicationCollection.find(query).toArray();
+            res.send(applications);
+        });
+
+        app.post('/applications', async (req, res) => {
+            const newApplication = req.body;
+            const result = await applicationCollection.insertOne(newApplication);
+            res.send(result);
         });
 
 
